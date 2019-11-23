@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: host-mutator
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: host-mutator
+  template:
+    metadata:
+      labels:
+        app: host-mutator
+    spec:
+      containers:
+      - name: host-mutator
+        env:
+        - name: BASE_DOMAIN
+          value: example.com
+        - name: SSL_CERT_PATH
+          value: /etc/host-mutator/ssl/cert.pem
+        - name: SSL_KEY_PATH
+          value: /etc/host-mutator/ssl/cert.key
+        image: host-mutator:latest
+        imagePullPolicy: Never
+        ports:
+        - name: http
+          containerPort: 8443
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 10
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 5
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /health
+            port: 8443
+            scheme: HTTPS
+          periodSeconds: 30
+          successThreshold: 1
+          timeoutSeconds: 5
+        resources:
+          limits:
+            cpu: 300m
+            memory: 256Mi
+        volumeMounts:
+        - name: ssl
+          mountPath: /etc/host-mutator/ssl
+          readOnly: true
+      volumes:
+      - name: ssl
+        secret:
+          secretName: host-mutator-ssl

@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: host-mutator
+  namespace: default
+spec:
+  type: ClusterIP
+  selector:
+    app: host-mutator
+  ports:
+  - name: http
+    port: 443
+    targetPort: http

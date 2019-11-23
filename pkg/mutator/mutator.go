@@ -13,13 +13,14 @@ import (
 
 var baseDomain string
 
-func init() {
-	baseDomain = os.Getenv("BASE_DOMAIN")
-}
-
 // Mutate receives an AdmissionReview (request), adds a response, and then returns it
 // Its goal is to append a base domain to the host value in a kubernetes ingress resource
 func Mutate(body []byte) ([]byte, error) {
+
+	// lazy loading of baseDomain so it can be easily overridden in unit tests
+	if baseDomain == "" {
+		baseDomain = os.Getenv("BASE_DOMAIN")
+	}
 
 	// unmarshal the request
 	admReview := admission.AdmissionReview{}
