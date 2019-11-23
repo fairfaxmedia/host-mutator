@@ -1,11 +1,11 @@
 package main
 
 import (
+	"github.com/antonosmond/host-mutator/pkg/mutator"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"time"
-	m "github.com/antonosmond/ingress-mutating-webhook/pkg/mutate"
 )
 
 func main() {
@@ -41,15 +41,14 @@ func handleMutate(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	// mutate the request
-	mutated, err := m.Mutate(body)
+	mutated, err := mutator.Mutate(body)
 	if err != nil {
 		log.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	// and write it back
 	w.WriteHeader(http.StatusOK)
 	w.Write(mutated)
+
 }
