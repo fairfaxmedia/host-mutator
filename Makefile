@@ -1,7 +1,9 @@
 SHELL = /bin/bash
 
+REPO = "antonosmond"
 NAME = "host-mutator"
 NAMESPACE = "default"
+TAG ?= "latest"
 
 .PHONY: test
 test:
@@ -9,7 +11,9 @@ test:
 
 .PHONY: image
 image: test
-	docker build -t ${NAME} .
+	docker build -t ${REPO}/${NAME} .
+	docker tag ${REPO}/${NAME}:latest ${REPO}/${NAME}:${TAG}
+	docker push ${REPO}/${NAME}
 
 .PHONY: ssl
 ssl:

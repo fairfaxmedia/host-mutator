@@ -3,15 +3,12 @@ package mutator
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 	"strings"
 
 	admission "k8s.io/api/admission/v1beta1"
 	networking "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-var baseDomain string
 
 // Patch represents a JSON patch
 type Patch struct {
@@ -29,13 +26,15 @@ func (e *BadRequest) Error() string {
 	return fmt.Sprintf("Bad Request: %s", e.err)
 }
 
-// Mutate receives an AdmissionReview (request), adds a response, and then returns it
-// Its goal is to append a base domain to the host value in a kubernetes ingress resource
-func Mutate(body []byte) ([]byte, error) {
+// Mutate receives an http request body (AdmissionReview), and baseDomain.
+// It adds an AdmissionResponse to the AdmissionReview and then returns it.
+// Its goal is to create a JSON patch to append the baseDomain to the host
+// values in a given ingress resource
+func Mutate(body []byte, baseDomain string) ([]byte, error) {
 
-	// lazy loading of baseDomain so it can be easily overridden in unit tests
+	// prevent an empty baseDomain
 	if baseDomain == "" {
-		baseDomain = os.Getenv("BASE_DOMAIN")
+		return nil, fmt.Errorf("Received empty baseDomain")
 	}
 
 	// unmarshal the request

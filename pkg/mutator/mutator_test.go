@@ -2,8 +2,8 @@ package mutator
 
 import (
 	"encoding/json"
+	"errors"
 	"io/ioutil"
-	"os"
 	"path/filepath"
 	"testing"
 
@@ -20,7 +20,7 @@ func getTestData(t *testing.T, file string) []byte {
 	return data
 }
 
-func TestMutateJSON(t *testing.T) {
+func TestMutate(t *testing.T) {
 
 	tc := []struct {
 		name     string
@@ -73,20 +73,21 @@ func TestMutateJSON(t *testing.T) {
 			err:      true,
 			errType:  &BadRequest{},
 		},
+		{
+			name:     "empty base domain",
+			testdata: "valid-request-single-rule.json",
+			patches:  []*Patch{},
+			err:      true,
+			errType:  errors.New(""),
+		},
 	}
 
 	for _, test := range tc {
 		t.Run(test.name, func(t *testing.T) {
 
-			// setup
-			baseDomain = "" // unsetting baseDomain ensures it's reloaded from env each test
-			if err := os.Setenv("BASE_DOMAIN", test.domain); err != nil {
-				t.Fatal(err)
-			}
-
 			// execute the test
 			request := getTestData(t, test.testdata)
-			respBody, err := Mutate(request)
+			respBody, err := Mutate(request, test.domain)
 
 			// validate error if error expected
 			if test.err {

@@ -11,8 +11,15 @@ import (
 )
 
 var addr = ":8443"
+var baseDomain = os.Getenv("BASE_DOMAIN")
 var certPath = os.Getenv("SSL_CERT_PATH")
 var keyPath = os.Getenv("SSL_KEY_PATH")
+
+func init() {
+	if baseDomain == "" {
+		log.Fatal("BASE_DOMAIN environment variable must not be empty")
+	}
+}
 
 func main() {
 
@@ -51,7 +58,7 @@ func handleMutate(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	mutated, err := mutator.Mutate(body)
+	mutated, err := mutator.Mutate(body, baseDomain)
 	if err != nil {
 		log.Println(err)
 		// check if the error is due to a bad request
