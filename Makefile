@@ -11,9 +11,12 @@ test:
 
 .PHONY: image
 image: test
-	docker build -t ${REPO}/${NAME} .
-	docker tag ${REPO}/${NAME}:latest ${REPO}/${NAME}:${TAG}
-	docker push ${REPO}/${NAME}
+	docker build \
+		-t ${REPO}/${NAME}:${TAG} \
+		-t ${REPO}/${NAME}:latest \
+		.
+	docker push ${REPO}/${NAME}:${TAG}
+	docker push ${REPO}/${NAME}:latest
 
 .PHONY: ssl
 ssl:
