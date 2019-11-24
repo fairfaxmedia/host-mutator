@@ -22,7 +22,7 @@ spec:
           value: /etc/host-mutator/ssl/cert.pem
         - name: SSL_KEY_PATH
           value: /etc/host-mutator/ssl/cert.key
-        image: antonosmond/host-mutator:latest
+        image: antonosmond/host-mutator:1.0.0
         ports:
         - name: http
           containerPort: 8443
