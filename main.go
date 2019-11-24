@@ -54,7 +54,12 @@ func handleMutate(w http.ResponseWriter, r *http.Request) {
 	mutated, err := mutator.Mutate(body)
 	if err != nil {
 		log.Println(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		// check if the error is due to a bad request
+		if _, ok := err.(*mutator.BadRequest); ok {
+			w.WriteHeader(http.StatusBadRequest)
+		} else {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		return
 	}
 

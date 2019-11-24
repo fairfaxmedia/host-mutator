@@ -13,6 +13,22 @@ import (
 
 var baseDomain string
 
+// Patch represents a JSON patch
+type Patch struct {
+	Op    string `json:"op"`
+	Path  string `json:"path"`
+	Value string `json:"value"`
+}
+
+// BadRequest is used to allow the caller to return an appropriate http response
+type BadRequest struct {
+	err string
+}
+
+func (e *BadRequest) Error() string {
+	return fmt.Sprintf("Bad Request: %s", e.err)
+}
+
 // Mutate receives an AdmissionReview (request), adds a response, and then returns it
 // Its goal is to append a base domain to the host value in a kubernetes ingress resource
 func Mutate(body []byte) ([]byte, error) {
@@ -25,19 +41,19 @@ func Mutate(body []byte) ([]byte, error) {
 	// unmarshal the request
 	admReview := admission.AdmissionReview{}
 	if err := json.Unmarshal(body, &admReview); err != nil {
-		return nil, fmt.Errorf("unmarshaling request failed with %s", err)
+		return nil, &BadRequest{fmt.Sprintf("Failed to unmarshal AdmissionReview: %s", err.Error())}
 	}
 	request := admReview.Request
 
-	// given an empty request, return an empty response
+	// handle an empty request
 	if request == nil {
-		return []byte{}, nil
+		return nil, &BadRequest{"AdmissionReview.Request is nil"}
 	}
 
 	// get the ingress resource from the request
 	var ingress *networking.Ingress
 	if err := json.Unmarshal(request.Object.Raw, &ingress); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal ingress json object %v", err)
+		return nil, &BadRequest{fmt.Sprintf("Failed to unmarshal ingress from AdmissionRequest: %s", err.Error())}
 	}
 
 	// set the response options
@@ -51,20 +67,19 @@ func Mutate(body []byte) ([]byte, error) {
 	}
 
 	// build a JSONPatch for each host rule
-	patches := []map[string]string{}
+	var patches []*Patch
 	for i, rule := range ingress.Spec.Rules {
-		patch := map[string]string{
-			"op":    "replace",
-			"path":  fmt.Sprintf("/spec/rules/%d/host", i),
-			"value": strings.Join([]string{rule.Host, baseDomain}, "."),
-		}
-		patches = append(patches, patch)
+		patches = append(patches, &Patch{
+			Op:    "replace",
+			Path:  fmt.Sprintf("/spec/rules/%d/host", i),
+			Value: strings.Join([]string{rule.Host, baseDomain}, "."),
+		})
 	}
 
 	// add the patches to the response
 	jsonPatches, err := json.Marshal(patches)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to marshal patches to JSON: %s", err)
 	}
 	response.Patch = jsonPatches
 
@@ -77,7 +92,7 @@ func Mutate(body []byte) ([]byte, error) {
 	admReview.Response = response
 	responseBody, err := json.Marshal(admReview)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Failed to marshal AdmissionReview response to JSON: %s", err)
 	}
 	return responseBody, nil
 

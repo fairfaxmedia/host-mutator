@@ -4,34 +4,115 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-
-	v1beta1 "k8s.io/api/admission/v1beta1"
+	"k8s.io/api/admission/v1beta1"
 )
+
+func getTestData(t *testing.T, file string) []byte {
+	t.Helper()
+	data, err := ioutil.ReadFile(filepath.Join("testdata", file))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return data
+}
 
 func TestMutateJSON(t *testing.T) {
 
-	if err := os.Setenv("BASE_DOMAIN", "test.run"); err != nil {
-		t.Fatal(err)
+	tc := []struct {
+		name     string
+		testdata string
+		domain   string
+		patches  []*Patch
+		err      bool
+		errType  interface{}
+	}{
+		{
+			name:     "valid request single rule",
+			testdata: "valid-request-single-rule.json",
+			domain:   "test.one",
+			patches: []*Patch{
+				{"replace", "/spec/rules/0/host", "host-mutator.test.one"},
+			},
+			err: false,
+		},
+		{
+			name:     "valid request multi rule",
+			testdata: "valid-request-multi-rule.json",
+			domain:   "test.two",
+			patches: []*Patch{
+				{"replace", "/spec/rules/0/host", "host-mutator-a.test.two"},
+				{"replace", "/spec/rules/1/host", "host-mutator-b.test.two"},
+			},
+			err: false,
+		},
+		{
+			name:     "invalid request empty AdmissionReview.Request",
+			testdata: "invalid-request-empty-request.json",
+			domain:   "test.three",
+			patches:  []*Patch{},
+			err:      true,
+			errType:  &BadRequest{},
+		},
+		{
+			name:     "invalid request invalid ingress",
+			testdata: "invalid-request-empty-request.json",
+			domain:   "test.three",
+			patches:  []*Patch{},
+			err:      true,
+			errType:  &BadRequest{},
+		},
+		{
+			name:     "invalid request json",
+			testdata: "invalid-request-json.json",
+			domain:   "test.one",
+			patches:  []*Patch{},
+			err:      true,
+			errType:  &BadRequest{},
+		},
 	}
 
-	admissionReviewJSON, err := ioutil.ReadFile("testdata/admission-review.json")
-	if err != nil {
-		t.Fatal(err)
-	}
-	response, err := Mutate(admissionReviewJSON)
-	if err != nil {
-		t.Errorf("Failed to mutate AdmissionRequest %s with error %s", string(response), err)
-	}
+	for _, test := range tc {
+		t.Run(test.name, func(t *testing.T) {
 
-	r := v1beta1.AdmissionReview{}
-	err = json.Unmarshal(response, &r)
-	assert.NoError(t, err, "failed to unmarshal with error %s", err)
+			// setup
+			baseDomain = "" // unsetting baseDomain ensures it's reloaded from env each test
+			if err := os.Setenv("BASE_DOMAIN", test.domain); err != nil {
+				t.Fatal(err)
+			}
 
-	rr := r.Response
-	assert.Equal(t, `[{"op":"replace","path":"/spec/rules/0/host","value":"kubernetes-dashboard.test.run"}]`, string(rr.Patch))
-	assert.Contains(t, rr.AuditAnnotations, "mutated-host")
+			// execute the test
+			request := getTestData(t, test.testdata)
+			respBody, err := Mutate(request)
+
+			// validate error if error expected
+			if test.err {
+				assert.Error(t, err)
+				assert.IsType(t, test.errType, err)
+				return
+			}
+
+			// fail the test if we have an unexpected error
+			if !assert.NoError(t, err) {
+				t.FailNow()
+			}
+
+			// validate response
+			admReview := v1beta1.AdmissionReview{}
+			err = json.Unmarshal(respBody, &admReview)
+			assert.NoError(t, err)
+			resp := admReview.Response
+			expectedPatch, err := json.Marshal(test.patches)
+			if err != nil {
+				t.Fatal(err)
+			}
+			assert.Equal(t, string(expectedPatch), string(resp.Patch))
+			assert.Equal(t, resp.AuditAnnotations["mutated-host"], "true")
+
+		})
+	}
 
 }

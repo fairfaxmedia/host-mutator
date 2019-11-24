@@ -1,0 +1,78 @@
+{
+    "kind": "AdmissionReview",
+    "apiVersion": "admission.k8s.io/v1beta1",
+    "request": {
+        "uid": "67f7e98f-0dec-11ea-8d4c-025000000001",
+        "kind": {
+            "group": "extensions",
+            "version": "v1beta1",
+            "kind": "Ingress"
+        },
+        "resource": {
+            "group": "extensions",
+            "version": "v1beta1",
+            "resource": "ingresses"
+        },
+        "namespace": "default",
+        "operation": "CREATE",
+        "userInfo": {
+            "username": "host-mutator",
+            "groups": [
+                "system:masters",
+                "system:authenticated"
+            ]
+        },
+        "object": {
+            "kind": "Ingress",
+            "apiVersion": "extensions/v1beta1",
+            "metadata": {
+                "name": "host-mutator",
+                "namespace": "default",
+                "creationTimestamp": null,
+                "labels": {
+                    "app": "host-mutator"
+                },
+                "annotations": {
+                    "kubernetes.io/ingress.class": "nginx"
+                }
+            },
+            "spec": {
+                "rules": [
+                    {
+                        "host": "host-mutator-a",
+                        "http": {
+                            "paths": [
+                                {
+                                    "path": "/a",
+                                    "backend": {
+                                        "serviceName": "host-mutator",
+                                        "servicePort": 443
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "host": "host-mutator-b",
+                        "http": {
+                            "paths": [
+                                {
+                                    "path": "/b",
+                                    "backend": {
+                                        "serviceName": "host-mutator",
+                                        "servicePort": 443
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            },
+            "status": {
+                "loadBalancer": {}
+            }
+        },
+        "oldObject": null,
+        "dryRun": false
+    }
+}
