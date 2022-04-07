@@ -27,15 +27,15 @@ DNS.2 = ${APP}.${NAMESPACE}
 DNS.3 = ${CSR_NAME}
 DNS.4 = ${CSR_NAME}.cluster.local
 EOF
-openssl req -new -key cert.key -subj "/CN=${CSR_NAME}" -out cert.csr -config csr.conf
-	
+openssl req -new -key cert.key -subj "/CN=system:node:${CSR_NAME} /O=system:nodes" -out cert.csr -config csr.conf
+
 echo "Deleting existing csr, if any"
 kubectl delete csr "$CSR_NAME" || true
 
 echo "Creating kubernetes CSR object"
 echo "kubectl create -f -"
 kubectl create -f - <<EOF
-apiVersion: certificates.k8s.io/v1beta1
+apiVersion: certificates.k8s.io/v1
 kind: CertificateSigningRequest
 metadata:
   name: ${CSR_NAME}
@@ -43,6 +43,7 @@ spec:
   groups:
   - system:authenticated
   request: $(base64 -i cert.csr | tr -d '\n')
+  signerName: kubernetes.io/kubelet-serving
   usages:
   - digital signature
   - key encipherment

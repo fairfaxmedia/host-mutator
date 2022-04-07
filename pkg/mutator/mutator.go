@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	admission "k8s.io/api/admission/v1beta1"
-	networking "k8s.io/api/networking/v1beta1"
+	admission "k8s.io/api/admission/v1"
+	networking "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

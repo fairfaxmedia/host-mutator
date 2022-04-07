@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"k8s.io/api/admission/v1beta1"
+	"k8s.io/api/admission/v1"
 )
 
 func getTestData(t *testing.T, file string) []byte {
@@ -102,7 +102,7 @@ func TestMutate(t *testing.T) {
 			}
 
 			// validate response
-			admReview := v1beta1.AdmissionReview{}
+			admReview := v1.AdmissionReview{}
 			err = json.Unmarshal(respBody, &admReview)
 			assert.NoError(t, err)
 			resp := admReview.Response

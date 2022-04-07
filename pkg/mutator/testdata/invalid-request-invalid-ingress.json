@@ -24,7 +24,7 @@
         },
         "object": {
             "kind": "Ingress",
-            "apiVersion": "extensions/v1beta1",
+            "apiVersion": "networking/v1",
             "metadata": {
                 "name": "host-mutator",
                 "namespace": "default",

@@ -2,4 +2,5 @@
 manifests/
 Makefile
 ssl/
+example/
 *.sh

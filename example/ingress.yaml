@@ -1,0 +1,20 @@
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: host-mutator
+  labels:
+    app: host-mutator
+  annotations:
+    kubernetes.io/ingress.class: nginx
+spec:
+  rules:
+  - host: host-mutator
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: host-mutator
+            port:
+              number: 443
