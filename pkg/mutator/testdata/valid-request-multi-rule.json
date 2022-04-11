@@ -39,7 +39,7 @@
             "spec": {
                 "rules": [
                     {
-                        "host": "host-mutator-a",
+                        "host": "host-mutator-a.test.one",
                         "http": {
                             "paths": [
                                 {
@@ -53,7 +53,7 @@
                         }
                     },
                     {
-                        "host": "host-mutator-b",
+                        "host": "host-mutator-b.test.one",
                         "http": {
                             "paths": [
                                 {

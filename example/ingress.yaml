@@ -8,7 +8,7 @@ metadata:
     kubernetes.io/ingress.class: nginx
 spec:
   rules:
-  - host: host-mutator
+  - host: host-mutator.example.com
     http:
       paths:
       - path: /

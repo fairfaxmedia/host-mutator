@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"regexp"
 
 	admission "k8s.io/api/admission/v1"
 	networking "k8s.io/api/networking/v1"
@@ -30,12 +31,18 @@ func (e *BadRequest) Error() string {
 // It adds an AdmissionResponse to the AdmissionReview and then returns it.
 // Its goal is to create a JSON patch to append the baseDomain to the host
 // values in a given ingress resource
-func Mutate(body []byte, baseDomain string) ([]byte, error) {
+func Mutate(body []byte, sourceDomains string, targetDomain string) ([]byte, error) {
 
-	// prevent an empty baseDomain
-	if baseDomain == "" {
-		return nil, fmt.Errorf("Received empty baseDomain")
+	// prevent an empty sourceDomains
+	if sourceDomains == "" {
+		return nil, fmt.Errorf("Received empty source domains")
 	}
+
+	// prevent an empty targetDomain
+	if targetDomain == "" {
+		return nil, fmt.Errorf("Received empty target domain")
+	}
+
 
 	// unmarshal the request
 	admReview := admission.AdmissionReview{}
@@ -71,7 +78,7 @@ func Mutate(body []byte, baseDomain string) ([]byte, error) {
 		patches = append(patches, &Patch{
 			Op:    "replace",
 			Path:  fmt.Sprintf("/spec/rules/%d/host", i),
-			Value: strings.Join([]string{rule.Host, baseDomain}, "."),
+			Value: replaceDomain(rule.Host, strings.Split(sourceDomains, ","),  targetDomain),
 		})
 	}
 
@@ -95,4 +102,15 @@ func Mutate(body []byte, baseDomain string) ([]byte, error) {
 	}
 	return responseBody, nil
 
+}
+
+func replaceDomain(host string, sources []string, target string) string {
+	for _, suffix := range sources {
+		if strings.HasSuffix(host, suffix) {
+			re := regexp.MustCompile(fmt.Sprint(".", suffix, "$"))
+			result := re.ReplaceAllString(host, fmt.Sprint("$1.", target))
+			return result
+		}
+	}
+	return host
 }

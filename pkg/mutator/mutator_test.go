@@ -23,55 +23,61 @@ func getTestData(t *testing.T, file string) []byte {
 func TestMutate(t *testing.T) {
 
 	tc := []struct {
-		name     string
-		testdata string
-		domain   string
-		patches  []*Patch
-		err      bool
-		errType  interface{}
+		name     			string
+		testdata 			string
+		sourceDomains string
+		targetDomain	string
+		patches  			[]*Patch
+		err      			bool
+		errType  			interface{}
 	}{
 		{
-			name:     "valid request single rule",
-			testdata: "valid-request-single-rule.json",
-			domain:   "test.one",
-			patches: []*Patch{
-				{"replace", "/spec/rules/0/host", "host-mutator.test.one"},
+			name:     		  "valid request single rule",
+			testdata: 		  "valid-request-single-rule.json",
+			sourceDomains:  "test.one",
+			targetDomain:	  "test.two",
+			patches: 			 []*Patch{
+				{"replace", "/spec/rules/0/host", "host-mutator.test.two"},
 			},
-			err: false,
+			err: 						false,
 		},
 		{
-			name:     "valid request multi rule",
-			testdata: "valid-request-multi-rule.json",
-			domain:   "test.two",
-			patches: []*Patch{
+			name:     			"valid request multi rule",
+			testdata: 			"valid-request-multi-rule.json",
+			sourceDomains:  "test.one",
+			targetDomain:		"test.two",
+			patches: 				[]*Patch{
 				{"replace", "/spec/rules/0/host", "host-mutator-a.test.two"},
 				{"replace", "/spec/rules/1/host", "host-mutator-b.test.two"},
 			},
-			err: false,
+			err: 						false,
 		},
 		{
-			name:     "invalid request empty AdmissionReview.Request",
-			testdata: "invalid-request-empty-request.json",
-			domain:   "test.three",
-			patches:  []*Patch{},
-			err:      true,
-			errType:  &BadRequest{},
+			name:     			"invalid request empty AdmissionReview.Request",
+			testdata: 			"invalid-request-empty-request.json",
+			sourceDomains:  "test.one",
+			targetDomain:	 	"test.two",
+			patches:  			[]*Patch{},
+			err:      			true,
+			errType:  			&BadRequest{},
 		},
 		{
-			name:     "invalid request invalid ingress",
-			testdata: "invalid-request-empty-request.json",
-			domain:   "test.three",
-			patches:  []*Patch{},
-			err:      true,
-			errType:  &BadRequest{},
+			name:     			"invalid request invalid ingress",
+			testdata: 			"invalid-request-empty-request.json",
+			sourceDomains:  "test.one",
+			targetDomain:		"test.two",
+			patches:  			[]*Patch{},
+			err:      			true,
+			errType:  			&BadRequest{},
 		},
 		{
-			name:     "invalid request json",
-			testdata: "invalid-request-json.json",
-			domain:   "test.one",
-			patches:  []*Patch{},
-			err:      true,
-			errType:  &BadRequest{},
+			name:     			"invalid request json",
+			testdata: 			"invalid-request-json.json",
+			sourceDomains:	"test.one",
+			targetDomain:		"test.two",
+			patches:  			[]*Patch{},
+			err:      			true,
+			errType:  			&BadRequest{},
 		},
 		{
 			name:     "empty base domain",
@@ -87,7 +93,7 @@ func TestMutate(t *testing.T) {
 
 			// execute the test
 			request := getTestData(t, test.testdata)
-			respBody, err := Mutate(request, test.domain)
+			respBody, err := Mutate(request, test.sourceDomains, test.targetDomain)
 
 			// validate error if error expected
 			if test.err {
