@@ -1,6 +1,5 @@
 .git/
-manifests/
-Makefile
-ssl/
 example/
-*.sh
+manifests/
+Dockerfile
+Makefile

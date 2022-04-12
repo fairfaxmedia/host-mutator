@@ -5,20 +5,25 @@ ENV CGO_ENABLED=0
 
 WORKDIR /root/go/src
 
-COPY go.mod go.sum .
+COPY go.mod go.sum ./
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
     go mod download
 
-COPY . .
+COPY . ./
+
+RUN mkdir bin
 
 RUN --mount=type=cache,target=/go/pkg/mod \
     --mount=type=cache,target=/root/.cache/go-build \
-    go build
+    go build -o bin ./...
 
 FROM alpine:3.15
 
-COPY --from=build /root/go/src/host-mutator /usr/local/bin/host-mutator
+COPY --from=build /root/go/src/bin/* /usr/local/bin
 
-ENTRYPOINT ["/usr/local/bin/host-mutator"]
+COPY docker-entrypoint.sh /
+RUN chmod +x docker-entrypoint.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
