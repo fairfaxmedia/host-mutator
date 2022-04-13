@@ -1,16 +1,16 @@
 {
     "kind": "AdmissionReview",
-    "apiVersion": "admission.k8s.io/v1beta1",
+    "apiVersion": "admission.k8s.io/v1",
     "request": {
         "uid": "67f7e98f-0dec-11ea-8d4c-025000000001",
         "kind": {
-            "group": "extensions",
-            "version": "v1beta1",
+            "group": "networking.k8s.io",
+            "version": "v1",
             "kind": "Ingress"
         },
         "resource": {
-            "group": "extensions",
-            "version": "v1beta1",
+            "group": "networking.k8s.io",
+            "version": "v1",
             "resource": "ingresses"
         },
         "namespace": "default",
@@ -24,7 +24,7 @@
         },
         "object": {
             "kind": "Ingress",
-            "apiVersion": "networking/v1",
+            "apiVersion": "networking.k8s.io/v1",
             "metadata": {
                 "name": "host-mutator",
                 "namespace": "default",
