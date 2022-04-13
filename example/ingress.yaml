@@ -5,10 +5,10 @@ metadata:
   labels:
     app: host-mutator
   annotations:
-    kubernetes.io/ingress.class: nginx
+    kubernetes.io/ingress.class: external
 spec:
   rules:
-  - host: host-mutator.example.com
+  - host: host-mutator.ffxblue.com.au
     http:
       paths:
       - path: /

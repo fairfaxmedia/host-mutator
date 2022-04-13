@@ -1,3 +1,3 @@
 config:
-  sourceDomains: example.com
-  targetDomain: example.org
+  sourceDomains: ffxblue.com.au
+  targetDomain: dev-test-00a.apse2.k8s.ninetech.dev

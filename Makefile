@@ -1,8 +1,8 @@
 SHELL = /bin/bash
 
-REPO = antonosmond
+REPO = fairfaxmedia
 NAME = host-mutator
-NAMESPACE = default
+NAMESPACE = infrastructure-ingress-host-mutator
 TAG ?= latest
 KUBECTL ?= kubectl # --as pe-admin
 
