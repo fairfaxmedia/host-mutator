@@ -4,6 +4,7 @@ REPO = antonosmond
 NAME = host-mutator
 NAMESPACE = default
 TAG ?= latest
+KUBECTL ?= kubectl # --as pe-admin
 
 .PHONY: test
 test:
@@ -23,11 +24,10 @@ release: image
 
 .PHONY: apply
 apply:
-	kubectl apply -f manifests \
-		--namespace ${NAMESPACE}
+	${KUBECTL} create namespace ${NAMESPACE} --dry-run=client -o yaml | ${KUBECTL} apply -f -
+	${KUBECTL} apply --filename manifests --namespace ${NAMESPACE}
 
 .PHONY: example
 example:
-	kubectl label namespace default host-mutator=enabled --overwrite=true
-	kubectl apply -f example \
-	  --namespace ${NAMESPACE}
+	${KUBECTL} label namespace ${NAMESPACE} host-mutator=enabled --overwrite=true
+	${KUBECTL} apply --filename example --namespace ${NAMESPACE}
