@@ -1,0 +1,11 @@
+helmDefaults:
+  wait: false
+  atomic: true
+
+releases:
+- name: host-mutator
+  chart: ../chart/host-mutator
+  version: 0.1.0
+  namespace: infrastructure-ingress-host-mutator
+  values:
+  - ../helm/values.yaml
