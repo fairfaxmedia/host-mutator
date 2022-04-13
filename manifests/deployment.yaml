@@ -12,6 +12,7 @@ spec:
       labels:
         app: host-mutator
     spec:
+      hostNetwork: true
       initContainers:
       - name: certificates
         image: fairfaxmedia/host-mutator:latest
